@@ -44,8 +44,8 @@
 #define PROGTASTER		1			// Input Pull-Up
 #define SXTAKT			2			// SX-T0, muﬂ INT0-Pin sein
 #define SXDATA			3			// SX-T1
-#define SXOUT_LO		4			// SX-Data Low
-#define SXOUT_HI		5			// SX-Data High
+#define SXOUT_HI		4			// SX-Data High
+#define SXOUT_LO		5			// SX-Data Low
 #define RESET			6			// Software Reset
 
 // FLAG's

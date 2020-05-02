@@ -8,8 +8,7 @@ Die Projekte basieren auf den Atmel ATtiny Microcontroler und sind mit Atmel Stu
 Ich versuche die Komponenten an eigener Hardware zu testen, habe aber nur eine Mini-FCC von 
 <a href="jochens-moba.vze.com/">Jochens Moba</a> zur Verfügung.
 Ich kann also nur damit die Funktionen der Komponenten testen.
-Der Nachbau und die Benutzung der Hardware geschieht auf eigene Gefahr, ich hafte nicht für Schäden, die der Anwender oder
-Dritte durch die Verwendung verursachen.
+Der Nachbau und die Benutzung der Hardware geschieht auf eigene Gefahr, ich hafte nicht für Schäden, die der Anwender oder Dritte durch die Verwendung verursachen.
 
 Alle Daten sind Sie sind lizensiert unter der <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Attribution-NonCommercial-ShareAlike 4.0 International</a>. - die eine persönliche Weiterverwertung erlaubt, solange in angemessener Weise die Urheberschaft erwähnt wird und die abgeleitete Arbeit unter der gleichen Lizenz steht.
 

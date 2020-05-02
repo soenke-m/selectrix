@@ -1,4 +1,4 @@
-#SFD-V1-Universeller Funktionsdecoder für den SX-Bus
+# SFD-V1-Universeller Funktionsdecoder für den SX-Bus
 
 
 Verwendung:

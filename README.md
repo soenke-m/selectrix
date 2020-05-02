@@ -10,7 +10,7 @@ Ich versuche die Komponenten an eigener Hardware zu testen, habe aber nur eine M
 Ich kann also nur damit die Funktionen der Komponenten testen.
 Der Nachbau und die Benutzung der Hardware geschieht auf eigene Gefahr, ich hafte nicht für Schäden, die der Anwender oder Dritte durch die Verwendung verursachen.
 
-Alle Daten sind Sie sind lizensiert unter der <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Attribution-NonCommercial-ShareAlike 4.0 International</a>. - die eine persönliche Weiterverwertung erlaubt, solange in angemessener Weise die Urheberschaft erwähnt wird und die abgeleitete Arbeit unter der gleichen Lizenz steht.
+Alle Daten sind lizensiert unter der <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Attribution-NonCommercial-ShareAlike 4.0 International</a>. - die eine private Weiterverwertung erlaubt, solange in angemessener Weise die Urheberschaft erwähnt wird und die abgeleitete Arbeit unter der gleichen Lizenz steht.
 
 <a title="Mateo Zlatar / Public domain" href="https://commons.wikimedia.org/wiki/File:Open-source-hardware-logo.svg"><img width="100" alt="Open-source-hardware-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Open-source-hardware-logo.svg/512px-Open-source-hardware-logo.svg.png"></a>
 

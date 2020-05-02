@@ -493,8 +493,6 @@ check_prg_req:
 	rcall	sx_read					// Wert von Kanal 106 zurückgeben
 	rjmp	prg_end
 prgtst:
-	//sbrc	r20,0					// Wenn Subadresse 1
-	//ori		r22,0x80				// Dann Bit 7 setzen
 	ldi		r24,107					// Anforderungsadr. in SX-Kanal 107
 	rcall	sx_read					// Adresse holen
 	sub		r24,r22					// stimmt die Adr ?
@@ -514,8 +512,6 @@ prgtst:
 	ldi		r24,104					// DevID holen und vergleichen (enthält auch die Subadresse)
 	rcall	sx_read					// Passt sie zu diesem Dekoder ?
 	sub		r24,r20					// Ja = 0 , Nein <> 0
-	//sbrc	r20,1					// Wenn Subadresse 2 od. 3
-	//subi	r24,0x80				// Dann prüfen ob Bit7 gesetzen ist, sonst Rückg.<>0
 prg_end:
 	ret
 	
@@ -543,9 +539,9 @@ sx_write:
 ********************************************************************/
 sx_read:
 	sts		cur_adr,r24
-	sbi		FLAG,request			// Adresse anfordern
+	sbi		FLAG,req				// Adresse anfordern
 wait_ready:
-	sbic	FLAG,request			// Warten bis fertig geschrieben
+	sbic	FLAG,req				// Warten bis fertig geschrieben
 	rjmp	wait_ready
 	out		SMASKE,rzero			// Schreiben zurücknehmen
 	mov		r24,vbuffer				// Return vbuffer
@@ -762,11 +758,11 @@ INT0_vect:
 	sbic	SXPIN,SXDATA			// Skip wenn Datenleitung LO
 	inc		shiftreg_lo				// LSB setzen, weil Datenleitung HI
 
-	sbic	FLAG, adr_ok			// gültige Adresse ?
+	sbic	FLAG, adr_ok			// Adresse komplett?
 	rjmp	process					// dann weitermachen
 	
-	sbis	FLAG, sync_ok			// Sync gültig ?
-	rjmp	synctest				// weiterscannen
+	sbis	FLAG, base_ok			// Basisadresse gültig ?
+	rjmp	synctest				// nein weiterscannen
 
 //	**  Warten bis Unteradresse	gültig								**	
 			
@@ -777,7 +773,7 @@ INT0_vect:
 start_process:
 	// bitcounter ist jetzt bitcount, am Anfang ist wert 255
 	sbi		FLAG, adr_ok			// do_action-FLAG setzen
-	cbi		FLAG, sync_ok			// Sync-FLAG zurücknehmen
+	cbi		FLAG, base_ok			// Base-FLAG zurücknehmen
 	in		vbuffer,SBUFFER			// Schreibdaten
 	in		vmaske,SMASKE			// Schreibmaske
 process:
@@ -790,7 +786,7 @@ process:
 	cpi		r30,8
 	breq	trennbit
 	cpi		r30,11
-	brsh	end_process				// das 4. Trennbit wird nicht mehr ausgewertet
+	brsh	end_process			// das 4. Trennbit wird nicht mehr ausgewertet
 
 // ***********************************************************************
 // **	Zum Schreiben der Datenbits wird das Bit 0 im BUFFER abgefragt	** 
@@ -815,19 +811,19 @@ out_low:
 	rjmp	check_int
 	
 trennbit:
-	sbrc	shiftreg_lo,0			// Trennbit muß hi sein
+	sbrc	shiftreg_lo,0		// Trennbit muß hi sein
 	rjmp	check_int
 error:
-	cbi		FLAG,adr_ok				// sonst Error -> Abbruch
+	cbi		FLAG,adr_ok			// sonst Error -> Abbruch
 	rjmp	check_int
 
 end_process:
-	cbi		FLAG,adr_ok				// do_action-FLAG zurücknehmen
-	cbi		FLAG,request			// Lesen / Schreiben beendet. Datenbit OK
+	cbi		FLAG,adr_ok			// do_action-FLAG zurücknehmen
+	cbi		FLAG,req			// Lesen / Schreiben beendet. Datenbit OK
 	rjmp 	check_int
 
 // ************************************************************************
-// *	Wenn kein "adr_ok-Flag" und kein "sync_ok-Flag" gesetzt ist,
+// *	Wenn kein "adr_ok-Flag" und kein "base_ok-Flag" gesetzt ist,
 // *	wird geprüft ob die 3 Synchronbits da sind.
 // *	Nach SX-Codierung 0-0-0-1-x-1-B3-B2-1-B1-B0-1 in den ob. 12 Bit
 // *	g ist das Gleisspannungsbit. B0 bis B3 ist die Basisadresse
@@ -862,7 +858,7 @@ synctest:
 	cbi		FLAG,Gleisbit			// GleisSpg-Flag löschen
 	sbrc	r30,7					// ist das Gleisbit gesetzt ?
 	sbi		FLAG,Gleisbit			// dann GleisSpg-Flag setzen
-	sbic	FLAG,request			// wenn keine anforderung dann nur 
+	sbis	FLAG,req				// wenn keine anforderung dann nur 
 	rjmp	check_int				// GleisSpg-Flag bedienen
 	lsr		r30						// 0  g  t a3 a2  t a1 a0						
 	mov		r31,r30
@@ -895,7 +891,7 @@ adr_loop:							// Multiplikationsschleife ohne Übertrag
 	brne	adr_loop
 
 // Sync-Triggerbit auf 1, wird wieder 0, wenn Wartezähler = 0
-	sbi		FLAG, sync_ok			// SYNC FLAG setzen	
+	sbi		FLAG, base_ok			// Base FLAG setzen	
 								
 check_int:
 

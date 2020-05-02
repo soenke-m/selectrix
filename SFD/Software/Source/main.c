@@ -68,6 +68,7 @@ static void action(uint8_t pattern, uint8_t valid, uint8_t mode)
 
 static void init_main(void)
 {		
+	PORTA = (1<<PA0) | (1<<PA1);
 	SXPORT = 0
 	| (1 << PROGTASTER)		// Pullup - auf 1 setzen
 	| (1 << SXTAKT)
@@ -75,7 +76,6 @@ static void init_main(void)
 	| (1 << SXOUT_HI);
 	
 	SXDDR	= 0
-	| (1<<LED)				// LED ein
 	| (1<<SXOUT_LO)			// SXOUT Output
 	| (1<<SXOUT_HI);				
 		
@@ -253,7 +253,6 @@ int main(void)
 	laststate1 = state;
 	laststate2 = 0;
 	bitSet(FLAG,Boot_Ok);				// Booten beendet
-	Led_Off;
 	seed = shiftreg_lo;					// Zufallszahl initialisieren
     while (1)
 	{

@@ -54,9 +54,9 @@
 #define Boot_Ok			5			// 1 = Bootvorgang beendet
 #define Change			4			// 1 = Adresse1-Daten geändert
 #define Vs_Ok			3			// 1 = Gültiges Hautsignal für Vorsignalsteuerung (nur MultiAdressMode)
-#define request			2			// 1 = Schreiben/Lesen anfordern
+#define req				2			// 1 = Schreiben/Lesen anfordern
 #define adr_ok			1			// 1 = Adresse komplett, ab jetzt Daten schreiben/lesen
-#define sync_ok			0			// 1 = Syncronisation und Basisadresse erkannt
+#define base_ok			0			// 1 = Syncronisation und Basisadresse erkannt
  
  // Parameter-Schalter 
  // PSW

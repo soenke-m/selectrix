@@ -7,8 +7,11 @@ Es existiert ein <a href="https://www.reichelt.de/my/1683631">Reichel Warenkorb<
 
 ![Oberteil](Oberteil.png)
 
-Das Oberteil vom Gehäuse muß an den Längsseiten um 4mm gekürzt werden. Die Schraubendome müssen auf dieses Niveau abgefeilt werden. Die Platine wird dann zwischen beide Gehäusehälften eingeklemmt.
+
+Das Gehäuseoberteil muss an den Längsseiten um 4mm gekürzt werden. Die Schraubendome müssen auf dieses Niveau abgefeilt werden. Die Platine wird dann zwischen beide Gehäusehälften eingeklemmt.
+
 
 ![SFD](SFD.png)
+
 
 Das Bild zeigt noch den Prototyp mit Lochstreifenplatine.

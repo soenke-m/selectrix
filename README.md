@@ -6,7 +6,7 @@ Hier möchte ich gerne meine SX-Projeke  mit euch Teilen damit alle die Selectri
 
 Die Projekte basieren auf den Atmel ATtiny Microcontroler und sind mit Atmel Studio 7 erstellt. 
 Ich versuche die Komponenten an eigener Hardware zu testen, habe aber nur eine Mini-FCC von 
-<a href="jochens-moba.vze.com/">Jochens Moba</a> zur Verfügung.
+<a href="http://jochens-moba.vze.com/">Jochens Moba</a> zur Verfügung.
 Ich kann also nur damit die Funktionen der Komponenten testen.
 Der Nachbau und die Benutzung der Hardware geschieht auf eigene Gefahr, ich hafte nicht für Schäden, die der Anwender oder Dritte durch die Verwendung verursachen.
 

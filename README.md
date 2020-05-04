@@ -5,9 +5,8 @@ Ich baue und entwickle Hard- und Software für das Selectrix-System
 Hier möchte ich gerne meine SX-Projeke  mit euch Teilen damit alle die Selectrix einsetzen wollen davon profitieren können.
 
 Die Projekte basieren auf den Atmel ATtiny Microcontroler und sind mit Atmel Studio 7 erstellt. 
-Ich versuche die Komponenten an eigener Hardware zu testen, habe aber nur eine Mini-FCC von 
-<a href="http://jochens-moba.vze.com/">Jochens Moba</a> zur Verfügung.
-Ich kann also nur damit die Funktionen der Komponenten testen.
+Zum Testen steht mir eine FCC zu Verfügung.
+
 Der Nachbau und die Benutzung der Hardware geschieht auf eigene Gefahr, ich hafte nicht für Schäden, die der Anwender oder Dritte durch die Verwendung verursachen.
 
 Alle Daten sind lizensiert unter der <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Attribution-NonCommercial-ShareAlike 4.0 International</a>. - die eine private Weiterverwertung erlaubt, solange in angemessener Weise die Urheberschaft erwähnt wird und die abgeleitete Arbeit unter der gleichen Lizenz steht.

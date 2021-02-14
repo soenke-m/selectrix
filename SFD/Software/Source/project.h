@@ -6,12 +6,12 @@
  * die unter http://www.gnu.org/licenses/gpl.txt verfügbar ist.
  * Jede kommerzielle Nutzung, auch von Teilen, ist untersagt.
  *
- * Copyright (c) 2017 S.Marsch
+ * Copyright (c) 2018 S.Marsch
  *
  * Header File project.h
  *
- * Created: 18.03.2017 11:12:44
- * Letzte Änderung 16.09.2019
+ * Created: 18.03.2018 11:12:44
+ * Letzte Änderung 06.02.2021
  *
  *  Author: Sönke Marsch
  */ 
@@ -21,8 +21,10 @@
 #define PROJECT_H_
 #include <avr/io.h>
 
+// Hersteller ID 1..255
 #define MFGID			0xF8		// Meine ID
-#define DEVID			0x01		// UniDecoder  max 0x3F bit 6 und 7 werden für subadresse benötigt
+// Dekoder ID 1..127 (Bit 7 reserviert)
+#define DEVID			0x01		// SFD-Decoder
 
 // Definition für die DIMM-Engine
 // für weitere Informationen siehe "sxtiny.S" Datei
@@ -34,8 +36,6 @@
 #define DIMM_DOWN_SPEED	5			// für Glühlampen-Simulation = 240mS
 #define DIMM_UP_DELAY	23			// Aufdimmverzögerung für neue Signalbilder = 460mS
 #define BLINK_TIME		25			// = 500ms Blinkdauer Andreaskreuz
-#define DEBOUNCE		5			// Tastenentprellung 100ms
-#define KEYLOCK			25			// Totzeit nach Tastendruck 500 ms
 
 
 // SX-Portbits
@@ -62,9 +62,9 @@
  // PSW
 #define Mam				0			// Multiadressmodus nur Signal-Mode 9-11
 #define Alt				1			// Multibitmodus (2/4 Bit Steuerung der Signale) Mode 8-11
-#define Lss				2			// Laststatesave (speichern der letzten Weichenstellung) Mode2-3
-#define Lza				3			// Lichtzeichenanlage (Bahnübergang mit Gelb/Rot-Ampel)
-#define Sis				4			// Schrankenimpulssteuerung (für ein und aus je ein Impuls)
+#define Lza				2			// Lichtzeichenanlage (Bahnübergang mit Gelb/Rot-Ampel)
+#define Sis				3			// Schrankenimpulssteuerung (für ein und aus je ein Impuls)
+#define Lss				4			// Laststatesave (speichern der letzten Weichenstellung) Mode2-3
 #define Nel				5			// Neonlampen-Simulation
 #define Sim				6			// Simultanansteuerung der Ausgänge
 #define Zst				7			// Zufallsteuerung beim Einschalten
@@ -136,6 +136,9 @@
 	#define FLAG		GPIOR0
 	#define PSW			UBRRL
 	
+	#define DEBOUNCE		5			// Tastenentprellung 100ms
+	#define KEYLOCK			25			// Totzeit nach Tastendruck 500 ms
+	
 	// Macro's für die Bitmanipulation
 	#ifndef cbi
 	#define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
@@ -146,7 +149,7 @@
 	#define bitRead(value, bit) (((value) >> (bit)) & 0x01)
 	#define bitSet(value, bit) ((value) |= (1UL << (bit)))
 	#define bitClear(value, bit) ((value) &= ~(1UL << (bit)))
-	#define swapNipple(value) (value = (value<<4) | (value>>4))
+	#define swapNibble(value) (value = (value<<4) | (value>>4))
 	
 	#define SaveLastState	bitRead(PSW,Lss)				// Letzte Stellung speicher ja/nein (Mode 2 u. 3)
 	#define MultiBitMode	bitRead(PSW,Mbm)				// Steuerung Sh1 abhängig von Fahrstrasse (ab Mode 7)

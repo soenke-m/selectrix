@@ -8,11 +8,11 @@
  * die unter http://www.gnu.org/licenses/gpl.txt verfügbar ist.
  * Jede kommerzielle Nutzung, auch von Teilen, ist untersagt. 
  *
- * Copyright (c) 2017 S.Marsch
+ * Copyright (c) 2018 S.Marsch
  *
  * main.c
  *
- * Created: 12.03.2017 17:56:56
+ * Created: 12.03.2018 17:56:56
  * Letzte Änderung 26.03.2020
  *
  * Author : Sönke Marsch
@@ -21,15 +21,15 @@
  *
  *	Fuses: Interner Oszillator, Kein Clock-Div, Brown_Out detection 4V3
  *
- *														  |------------- Option ---------------|
- *	Mode		  Decodertyp				Adr	Sub  Bit  ALT  MAM	LSS	 LZA  SIS  NAL  SIM	 ZST
+ *	Betriebsart:										  |------------- Option ---------------|
+ *	Mode		  Decodertyp				Adr	Sub  Bit  Mam  Alt	Lza	 Sis  Lss  Nel  Sim	 Zst
  *	0: 8 fach Impuls/Schaltdecoder			 1	 N	  8	   N	N	 N	  N	   N	N    N	  N
  *	1: 8 fach Beleuchtungsdekoder			 1	 N	  8	   N	N	 N	  N	   N	J	 J	  J
- *	2: 4 fach Weichendecoder Impulsbetrieb	 1	 J	  4	   N	N	 J	  N	   N	N	 N	  N
+ *	2: 4 fach Weichendecoder Impulsbetrieb	 1	 J	  4	   N	N	 N	  N	   J	N	 N	  N
  *	3: 2 Weichen u. 1 Bahnübergang			 1	 J	  3	   N	N	 J	  J	   J	N	 N	  N
  *	4: 4 Signale 2 Begriffig				 1	 J	  4	   N	N	 N	  N	   N	N	 N	  N
- *	5: 2 Einfahrsignale mit Vorsignal		 2	 J	  2	   J	N	 N	  N	   N	N	 N	  N
- *	6: 2 Haupt/sperrsignale					 2	 J	  2    J	N	 N	  N	   N	N	 N	  N
+ *	5: 2 Einfahrsignale mit Vorsignal		 2	 J	  2	   N	J	 N	  N	   N	N	 N	  N
+ *	6: 2 Haupt/sperrsignale					 2	 J	  2    N	J	 N	  N	   N	N	 N	  N
  *	7: 1 Einfahrsig. m. Vorsig. u. 1 VorSig. 2	 J	  2    J	J	 N	  N	   N	N	 N	  N
  *  8: 1 Haupt/sperrsignal u. 1 Vorsignal	 2	 J	  2    J	J	 N	  N	   N	N	 N	  N
  *  9: 1 Haupt/sperrsig. 1 Block HS/VS m. Dt 2	 J	  2	   J	J	 N	  N	   N	N	 N	  N
@@ -68,7 +68,7 @@ static void action(uint8_t pattern, uint8_t valid, uint8_t mode)
 
 static void init_main(void)
 {		
-	PORTA = (1<<PA0) | (1<<PA1);
+	//PORTA = (1<<PA0) | (1<<PA1);
 	SXPORT = 0
 	| (1 << PROGTASTER)		// Pullup - auf 1 setzen
 	| (1 << SXTAKT)
@@ -126,6 +126,7 @@ void finish_program(void)
 	sx_write(105,0,0xFF);
 	sx_write(104,0,0xFF);
 	
+	
 	if (DecMode != CurMode)	Reset();
 	Program_Off;
 	Led_Off;
@@ -135,13 +136,13 @@ void start_program(void)
 {
 	Led_On;
 	Program_On;
-	Par_Old = 255;
+	Par_Old = 127;
 	
 	sx_write(107,0,0xFF);
 	sx_write(106,32,0xFF);				// programmieren setzen					 
 	sx_write(105,MFGID,0xFF);
 	sx_write(104,DEVID,0xFF);
-	sx_write(1,0,0xFF);
+	sx_write(0,0,0xFF);					// acknowledge für ProgTool
 	
 	wait(KEYLOCK);
 }
@@ -210,7 +211,13 @@ void do_program(void)
 	{
 		sx_write(2,pdata,0xFF);				// Aktuellen Parameterwert auf den SX-Bus schreiben
 		sx_write(0,0,0xFF);					// acknowledge für ProgTool
-		if (par == 255)	finish_program();	// Pseudoparameter beendet Programmieren
+		
+		if (par > 253)						// Pseudoparameter beenden daa Programmieren
+		{
+			// 254 = Werkseinstellung laden und beenden, 255 = nur beenden
+			if (par == 254) eeprom_read_block(&Param, &EE_Default, sizeof(Param));
+			finish_program();	
+		}
 	}
 	Par_Old = par;
 }
@@ -237,8 +244,8 @@ int main(void)
 		if (mode == 3) maske = 0x03;
 		if bitRead(SubAdr1,0)
 		{
-			swapNipple(laststate1);
-			swapNipple(maske);
+			swapNibble(laststate1);
+			swapNibble(maske);
 		}
 		sx_write(adr,laststate1,maske);
 	} else
@@ -248,7 +255,7 @@ int main(void)
 		
 		// Ports in Grundstellung bringen
 		(mode < 2) ? action(state,0xFF,mode) : action(state,0x0F,mode); 
-		if (mode > 4) action(state,0xF0,mode | 0x80);	// 2. Signal extra
+		if (mode > 4) action(state,0xF0,mode);	// 2. Signal extra
 	}
 	laststate1 = state;
 	laststate2 = 0;
@@ -264,13 +271,13 @@ int main(void)
 		if (mode > 1)
 		{
 			sub = SubAdr1;
-			if bitRead(sub,0) swapNipple(state);
+			if bitRead(sub,0) swapNibble(state);
 			state &= 0x0F;
-			if (mode == 3) state &= 0x07;
+			if (mode == 3) state &= 0x07; // nur die untern 3 Bits
 			if (mode > 4)
 			{
-				if bitRead(sub,1) state >>= 2;
-				state &= 0x03;
+				if bitRead(sub,1) state >>= 2;	// obere Dibits nutzen ?
+				state &= 0x03;					// dann Bit 3..2 --> Bit 1..0
 			}
 		}
 		if (state != laststate1)
@@ -304,9 +311,9 @@ int main(void)
 			{
 				adr = sx_read(adr);			// Masteradresse lesen
 				maske = MulMask;
-				if (sub) swapNipple(adr);	
+				if (sub) swapNibble(adr);	
 				adr ^= ~maske;				// Low od. High-Aktiv prüfen
-				swapNipple(maske);		
+				swapNibble(maske);		
 				adr &= maske;				// nur die Aktiven ausfiltern
 				if (adr & 0x07)				// nur die unteren 3 Bit
 				{
@@ -341,14 +348,13 @@ int main(void)
 				bitSet(FLAG,Vs_Ok);
 				state = sx_read(adr);
 			}
-			if bitRead(sub,0) swapNipple(state);
+			if bitRead(sub,0) swapNibble(state);
 			if bitRead(sub,1) state >>= 2;
 			state &= 0x03;
 			if (mode == 9) state &= 0x01;
 			if (state != laststate2)
 			{
-				// Bit 7 im mode gesetzt = 2. Signal
-				action(state, 0xF0, mode | 0x80);
+				action(state, 0xF0, mode);
 				laststate2 = state;
 			}	
 		} // endif Mode > 8

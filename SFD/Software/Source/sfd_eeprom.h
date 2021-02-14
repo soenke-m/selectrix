@@ -26,13 +26,11 @@
 
 uint8_t EEMEM EE_Param [21]		=
 {
-	2,		// EE_DecMode		(Weichendekoder)
+	2,		// EE_DecMode		Betriebsart (Default Weichendekoder)
 	15,		// EE_Adr1			Basisadresse od. Adresse 1. Signal
 	0,		// EE_SubAdr1		Auswahl oberes od. unteres Nibble. (Bit0)
-	//							Bei mehrbegriffigen Signalen zusätzlich obere od. untere Dibit (Bit1)
 	16,		// EE_Adr2			Zusatzadresse 2. Signal im Multiadressmode Masteradresse
 	0,		// EE_SubAdr2		Auswahl oberes od. unteres Nibble. (Bit0)
-	//							Bei mehrbegriffigen Signalen zusätzlich obere od. untere Dibit (Bit1)
 	20,		// EE_ImpTime		Impulsdauer in 20mS-Schritten, nur Bit 0-5 (0-63) Standart 400mS
 	20,		// EE_TimeRatio		Streckungsfaktor für Zufallssteuerung bei der Strassenbeleuchtung
 	75,		// EE_RedDelay		Verzögerung bis Gelb aus / Rot an bei BÜ mit Lichtzeichenanlage
@@ -40,11 +38,11 @@ uint8_t EEMEM EE_Param [21]		=
 	125,	// EE_BarDelay		Verzögerung bis Schrankenrelais schaltet (2,5 Sek). Nur BÜ.
 	25,		// EE_BarImpTime	Impulsdauer für Schranken auf/zu (0,5 Sek). Nur BÜ, nur OptSw Bit 4 = 1
 	0,		// EE_OptSw			Optionsschalter:
-	//			Bit 0:Mam		MultiAdressMode (Mode 7 - 11)
-	//			Bit 1:Alt		Alternative Ansteuerung für mehrbegriffige Signale
-	//			Bit 2:Lss		Speichern der letzten Weichenstellung (nur Mode 2 und 3)
-	//			Bit 3:Lza		Lichtzeichenanlage bei Bahnübergang (Mode 3)
-	//			Bit	4:Sis		Schrankenimpulssteuerung für Schrankenantrieb
+	//			Bit 0:Mam		Fahrstraßenanhängige Vorsignalsteuerung (Mode 7 - 11)
+	//			Bit 1:Alt		Alternative Signalansteuerung (mode 5 - 11)
+	//			Bit 2:Lza		Lichtzeichenanlage bei Bahnübergang (Mode 3)
+	//			Bit	3:Sis		Schrankenimpulssteuerung für Schrankenantrieb
+	//			Bit 4:Lss		Speichern der letzten Weichenstellung (nur Mode 2 und 3)
 	//			Bit 5:Nel		Simuliert das Flackern von Neonleuchten (nur Mode1)
 	//			Bit	6:Sim		Simultansteuerung z.B. Strassenbeleuchtung (nun Mode1)
 	//			Bit 7:Zst		Zufallsgesteuertes einschalten (nur Mode1, nur wenn Sim=1)
@@ -71,6 +69,9 @@ uint8_t EEMEM EE_Param [21]		=
 	0		// EE_LastState		letzte Weichenstellung (nur Mode 2 und 3)
 };
 #define EE_LastState	EE_Param[20]
+
+//Defaultwerte
+uint8_t EEMEM EE_Default [21]	= {2,15,0,16,0,20,20,75,125,25,0,0,17,0,18,0,19,0,20,0,0};
 
 /*==============================================================================
 // Bitmuster für verschieden Signale
@@ -102,7 +103,8 @@ unsigned char EE_Signal_DB1[8] EEMEM =
 	0b00010000,     // hp0 vr0
 	0b10100000,     // hp1 vr1
 	0b00010000,     // hp0 vr0
-	0b01100000      // hp2 vr2
+	0b01100000	    // hp2 vr2
+	
 };
 
 /*
@@ -133,7 +135,7 @@ unsigned char EE_Signal_DB2[8] EEMEM =
 	0b00000110,     // hp2
 	0b00010000,     // hp0
 	0b00100000,     // hp1
-	0b10000000,     // sh1
+	0b10000000,		// sh1
 	0b01100000	    // hp2
 };
 
@@ -172,7 +174,7 @@ unsigned char EE_Signal_DB3[8] EEMEM =
 	0b00110000,     // vr0
 	0b11000000,     // vr1
 	0b00110000,     // vr0
-	0b01100000,     // vr2
+	0b01100000      // vr2
 };
 
 /* Mode8   1. Adr. mehrbegriffiges Hauptsignal (1..4)
@@ -204,7 +206,7 @@ unsigned char EE_Signal_DB4[8] EEMEM =
 	0b00000110,     // hp2
 	0b00110000,     // vr0
 	0b11000000,     // vr1
-	0b00110000,     // vr0
+	0b00110000,	    // vr0
 	0b01100000      // vr2
 };
 
@@ -243,10 +245,10 @@ unsigned char EE_Signal_DB5[8] EEMEM =
 	0b00000010,     // hp1
 	0b00001000,     // sh1
 	0b00000110,     // hp2
-	0b00010000,     // vr0
-	0b00100000,     // vr1
-	0b00000000,     // Dunkeltastung
-	0b00010000      // vr0
+	0b01010000,     // hp0/vr0
+	0b10100000,     // hp1/vr1
+	0b01000000,		// hp0/vr Dunkeltastung
+	0b10000000      // hp1/vr Dunkeltastung
 };
 
 
@@ -282,15 +284,15 @@ unsigned char EE_Signal_DB6[8] EEMEM =
 	0b00000110,     // hp2
 	0b00110000,     // vr0
 	0b11000000,     // vr1
-	0b00000000,     // Dunkeltastung
-	0b01100000,     // vr2
+	0b00000000,		// Dunkeltastung
+	0b01100000      // vr2
 };
 
 /* Mode11  1. Adr. mehrbegriffiges Hauptsignal (1..4)
 //		   2. Adr. unabhängiges mehrbegriffiges Vorsignal (5..8)
 //					am gleichen Mast mit Dunkeltastung
 //
-// Anschluß wie Mode 9
+// Anschluß wie Mode 8
 */
 
 unsigned char EE_Signal_DB7[8] EEMEM =
@@ -302,7 +304,7 @@ unsigned char EE_Signal_DB7[8] EEMEM =
 	0b00000110,     // hp2
 	0b00110000,     // vr0
 	0b11000000,     // vr1
-	0b00000000,     // Dunkeltastung
+	0b00000000,		// Dunkeltastung
 	0b01100000      // vr2
 };
 //--------------------------------------------------------------------------------------

@@ -2,7 +2,7 @@ Dieser Ordner enthält die Eagle Dateien
 
 Die DIN-Stecker Version ist eine einseitige Platine
 
-Es existiert ein <a href="https://www.reichelt.de/my/1683631">Reichel Warenkorb</a>. Die Teileliste ist für beide gültig. Die nicht benötigten Teile müssen dann gelöscht werden.
+Es existiert ein <a href="https://www.reichelt.de/my/1683631">Reichel Warenkorb</a>. Die Teileliste ist für beide Versionen gültig. Die nicht benötigten Teile müssen dann gelöscht werden.
 
 
 ![Oberteil](Oberteil.png)

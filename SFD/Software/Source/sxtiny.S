@@ -8,10 +8,10 @@
  * die unter http://www.gnu.org/licenses/gpl.txt verfügbar ist.
  * Jede kommerzielle Nutzung, auch von Teilen, ist untersagt. 
  *
- * Copyright (c) 2017 S.Marsch
+ * Copyright (c) 2018 S.Marsch
  *
  ****************************************************************************************
- * Die Timing- und Dimmengine ist dem Opendecoder-Projek aus OpenDCC entnommen.			*
+ * Die Vorlage der Timing- und Dimmengine entstammt dem Opendecoder-Projek aus OpenDCC	*
  * https://www.opendcc.de/elektronik/opendecoder/opendecoder.html						*
  * Copyright (c) 2006 Kufer																*
  * Die Timing- und Dimmengine wurde um Neonflackern und Zufallsssteuerung erweitert		*
@@ -19,7 +19,7 @@
  ****************************************************************************************
  * Assembler File sxtiny.S
  *
- * Created: 12.03.2017 18:00:31sx
+ * Created: 12.03.2018 18:00:31sx
  * Letzte Änderung 25.03.2020
  *
  *  Author: Sönke Marsch
@@ -189,42 +189,54 @@ no_boot:
  
 .global action_out
 /***********************************************************************************************
-														  |------------- Option ---------------|
- Mode		  Decodertyp					Adr	Sub  Bit  ALT  MAM	LSS	 LZA  SIS  NAL  SIM	 ZST
+ Betriebsart:										  |------------- Option ---------------|
+ Mode		  Decodertyp					Adr	Sub  Bit  Mam  Alt	Lza	 Sis  Lss  Nel  Sim	 Zst
   0: 8 fach Impuls/Schaltdecoder			 1	 N	  8	   N	N	 N	  N	   N	N    N	  N
   1: 8 fach Beleuchtungsdekoder				 1	 N	  8	   N	N	 N	  N	   N	J	 J	  J
-  2: 4 fach Weichendecoder Impulsbetrieb	 1	 J	  4	   N	N	 J	  N	   N	N	 N	  N
+  2: 4 fach Weichendecoder Impulsbetrieb	 1	 J	  4	   N	N	 N	  N	   J	N	 N	  N
   3: 2 Weichen u. 1 Bahnübergang			 1	 J	  3	   N	N	 J	  J	   J	N	 N	  N
   4: 4 Signale 2 Begriffig					 1	 J	  4	   N	N	 N	  N	   N	N	 N	  N
-  5: 2 Einfahrsignale mit Vorsignal			 2	 J	  2	   J	N	 N	  N	   N	N	 N	  N
-  6: 2 Haupt/sperrsignale					 2	 J	  2    J	N	 N	  N	   N	N	 N	  N
-  7: 1 Einfahrsig. m. Vorsig. u. 1 VorSig.   2	 J	  2    J	J	 N	  N	   N	N	 N	  N
+  5: 2 Einfahrsignale mit Vorsignal			 2	 J	  2	   N	J	 N	  N	   N	N	 N	  N
+  6: 2 Haupt/sperrsignale					 2	 J	  2    N	J	 N	  N	   N	N	 N	  N
+  7: 1 Einfahrsig. m. Vorsig. u. 1 VorSig.	 2	 J	  2    J	J	 N	  N	   N	N	 N	  N
   8: 1 Haupt/sperrsignal u. 1 Vorsignal		 2	 J	  2    J	J	 N	  N	   N	N	 N	  N
-  9: 1 Haupt/sperrsig. 1 Block HS/VS m. Dt   2	 J	  2	   J	J	 N	  N	   N	N	 N	  N
+  9: 1 Haupt/sperrsig. 1 Block HS/VS m. Dt	 2	 J	  2	   J	J	 N	  N	   N	N	 N	  N
  10: Wie Mode7 aber mit Dunkeltastung		 2	 J	  2    J	J	 N	  N	   N	N	 N	  N
  11: Wie Mode8 aber mit Dunkeltastung		 2	 J	  2    J	J	 N	  N	   N	N	 N	  N
-																							 
-	Mode2 wird zum 4 fach Wechseler, wenn Parameter 5 (Impulsdauer) = 0 ist					 
-**********************************************************************************************/							
-action_out:
-	//Switch	
-	bst		r20,7					// Flag für Signalauswahl sichern
-	andi	r20,0x7F				// Flag löschen
+ 																			
+ 	Mode2 wird zum 4 fach Wechseler, wenn Parameter 5 (Impulsdauer) = 0 ist	
+**********************************************************************************************/
+	
+/****************************************************
+*	Register:	r20 Portmaske						*
+*				r21 Geänderte Ports	(ini-wert=0)	*
+*				r22	Zu ändernde Ports				*
+*				r23	Arbeitsregister					*
+*				r24	Stellbefehl						*
+*				r25	Arbeitsregister					*
+*				 x	Zeiger auf PWM-Array			*
+*				 z	Pointerregister					*
+****************************************************/
+						
+action_out:	
 	cpi		r20,5					// Mehrbegriffiges Signal
-	brlo	smode_2					// nein, dann gleich "case'n"
-	sbis	PSW,Alt					// Alternative Signalsteuerung?
-	rjmp	smode_1					// Nein, dann Signalauswahl
-	sbrs	r24,1					// dibit 10 -> 11
-	rjmp	smode_1					// dibit 11 -> 10
-	ldi		r25,1
-	eor		r24,r25
+	brlo	switch					// nein, dann gleich switch/case	
 
-smode_1:
-	ldi		r22,0x0F				// Ausgang (1..4)
-	brtc	smode_2					// 1. od. 2. Signal?
-	ldi		r22,0xF0				// Ausgang (5..8)
+	sbis	PSW,Alt					// Alternative Signalsteuerung?
+	rjmp	sig_mode				// Nein, dann Signalauswahl
+	sbrs	r24,1					
+	rjmp	sig_mode				// dibit 11 -> 10
+	ldi		r25,1					// dibit 10 -> 11
+	eor		r24,r25
+sig_mode:
+	cpi		r22,0xF0				// 2. Signal? (Port 5..8)
+	breq	sig_mode_1
+	ldi		r22,0x0F				// 1. Signal, dann Port 1..4 ändern
+	brne	switch
+sig_mode_1:
 	subi	r24,252					// bei 2. Signal = Kommando + 4
-smode_2:
+
+switch:
 	clt								// T-Flag vorbereiten für Dunkeltastungs- Modi
 	ldi		xl,lo8(out_pwm)			// Zeiger auf PWM-Array
 	ldi		xh,hi8(out_pwm)
@@ -249,16 +261,6 @@ mode_tbl:	// Sprungtabelle
 	rjmp	mode11
 
 	// Case
-/****************************************************
-*	Register:	r20 Portmaske						*
-*				r21 Geänderte Ports	(ini-wert=0)	*
-*				r22	Zu ändernde Ports				*
-*				r23	Arbeitsregister					*
-*				r24	Stellbefehl						*
-*				r25	Arbeitsregister					*
-*				 x	Zeiger auf PWM-Array			*
-*				 z	Pointerregister					*
-****************************************************/
 mode0:		// 8 fach Impuls/Schaltdecoder			
 mode1:		// Mode0 und Mode1 sind gleich Unterschied ungedimmt/gedimmmt
 	movw	z,x						// Zeiger auf PWM-Array (std od. ldd geht nur mit y od. z)
@@ -287,7 +289,7 @@ mode01_end:
 	lsr		r24						// nächster Port
 	lsl		r20
 	brne	mode01_loop				// alle Ports bearbeitet ?
-	rjmp	action_out_port
+	rjmp	set_port
 			
 mode2:		// Weichendecoder mit sequentiellem Schalten 			
 	inc		myrest					// muss > 0 sein 
@@ -318,7 +320,7 @@ turn_end:
 	lsl		r20						// Bit-MASK 2 Ports weiter
 	lsl		r20						// = nächste Weiche
 	brne	turn_loop				// Alle Weichen fertig ?							
-	rjmp	action_out_port
+	rjmp	set_port
 
 mode3:		// 2 Weichen und 1 Bahnübergang wahlweise mit
 			// Andreaskreuzblinker oder Lichtzeichenanlage (Rot / Gelb Ampel)
@@ -358,7 +360,7 @@ bu_on:
 bu_set:
 	out		DIMM_DIR,r21			// Port's werden im Dimmer geschaltet
 bu_end:		
-	rjmp	action_out_end
+	rjmp	action_end
 
 mode4:		// 4 Zweibegriffige Signale
 	ldi		r25,DIMM_UP_DELAY		// erst abdimmen und verzögert aufdimmen
@@ -384,15 +386,15 @@ mode8:		// Vierbegriffiges Haupt- u. Vorsignal getrennt
 
 mode9:
 	set								// Flag für 2 begriffiges Vorsignal auf 2. Adresse
-	cpi		r24,4					// 1. oder 2. Adresse
+	/*cpi		r24,4					// 1. oder 2. Adresse
 	brlo	mode9_1					// 1. Adresse: einfach weiter
 	mov		r23,r24					// Stellbefehl sichern
 	swap	r24						// bit0 (hp0/hp1) nach bit3 schieben
 	lsr		r24		
-	ldi		r22,8					// nur Port 7..8 ändern (zweibegriffiges Hauptsignal)
+	ldi		r22,0b00001000			// nur Port 7..8 ändern (zweibegriffiges Hauptsignal)
 	rcall	mode4					// erst das Hauptsignal stellen
 	mov		r24,r23					// Stellbefehl für das Vorsignal am Mast des Ausfahrsinal
-	ldi		r22,0b00110000			// Maske für 2. Signal
+	ldi		r22,0b00110000			// Maske für 2. Signal*/
 mode9_1:
 	ldi		r25,EE_Signal_DB5
 	rjmp	signal_kombi
@@ -417,7 +419,7 @@ signal_kombi:
 	sts		hauptsignal_state,r20	// Zustand für Vorsignalsteurung speichern
 	and		r21,r20					// Neuen mit alten Vergleichen
 	cpi		r21,1					// Nur Wechsel HP1/HP2,
-	breq	action_out_end			// dann nichts machen.
+	breq	action_end				// dann nichts machen.
 	sbis	FLAG,Vs_Ok				// Gültiges Vorsignal?
 	clr		r20						// nein, dann Vorsignal dunkel
 	ldi		r22,0b11110000			// Maske für 2. Signal
@@ -436,9 +438,16 @@ vorsignal:
 vorsignal_ok:
 	sts		vorsignal_state,r24		// Aktuelles Vorsignalkommando speichern
 	lds		r21,hauptsignal_state	// Stellung des Hauptsignals prüfen
-	sbrs	r21,0					// Hp00 od. Hp0 + Sh1 -> Vorsignal ist dunkel
-	rjmp	action_out_end			// nichts machen
+	//sbrs	r21,0					// Hp00 od. Hp0 + Sh1 -> Vorsignal ist dunkel
+	//rjmp	action_out_end			// nichts machen
 	// Hp/Hp2 = Vorsignal einschalten
+	sbrc	r21,0					// Hp1 od. Hp2 ?
+	rjmp	set_signal				// dann Signal stellen
+	brtc	action_end				// Kein Blocksignal dann Vorsignal dunkel lassen
+	//ldi		r22,0b11000000	
+	subi	r24,254					// Kommando + 2	= Dunkeltastung Blockvorsignal
+
+
 
 set_signal:
 	add		r25,r24					// Offset für Signalmuster
@@ -448,6 +457,14 @@ e_loop:
 	out 	_EEAR,r25				// Adresse Signalmuster ins EEPROM Adressregister
 	sbi 	_EECR,EERE				// Lesebit im EEPROM-Controlregister setzen
 	in 		r24,_EEDR				// Byte kann jetzt aus dem Datenregister gelesen werden
+	// prüfen ob Signalbild sich geängert hat
+	// vermeidet aus und wiedereinschalten von Hp0 bei dreibegriffigen Signalen
+	in		r25,DIMM_DIR
+	and		r25,r22					// Signalbits ausmaskieren
+	cpse	r25,r24					// mit AktuellemBild vergleichen
+	rjmp	set_signal_val			// neues Signalbild stellen
+	rjmp	action_end				// Nichts geändert, dann nichts machen
+
 set_signal_val:	
 	// x = Zeiger auf PWM-Array
 	movw	z,x
@@ -466,12 +483,12 @@ light_next:
 	lsr		r24						// Nächster Port
 	tst		r22
 	brne	lightloop				// Alle Ports bearbeitet?
-action_out_port:
+set_port:
 	com		r21						// Alle relevanten Ports ausschalten:
 	in		r25,DIMM_DIR			// Signale sind dann aus oder werden 
 	and		r25,r21					// nach der Dunkelphase (dimm_up_delay) wieder
 	out		DIMM_DIR,r25			// aufgedimmt
-action_out_end:	
+action_end:	
 	ret
 
 .global check_prg_req
@@ -479,20 +496,23 @@ action_out_end:
 * Prüfen ob Programmieranforderung per Tastendruck      *
 * oder per Software.									*
 * Eingabe:	r24 = Prog-Taste							*
-*			r22 = Basisadresse							*
-*			r20 = Subadresse							*
+*			r22 = Decoderadresse						*
+*			r20 = Subadresse Bit0=1:oberes Nipple		*
+*				  ab Mode5:	 Bit1=1:Oberes Dibit		*
 * Rückgabe:	r24 = im Erfolgsfall = 0					*			
 ********************************************************/
 
 check_prg_req:
 	sbic	FLAG,Prog				// Decoder im Programmiermode ?
 	rjmp	prg_end					// Dann einfach Tastencode zurückgeben
-	cpse	r24,rzero				// Taste gedrück ?
+	cpse	r24,rzero				// Taste gedrück (0)?
 	rjmp	prgtst
 	ldi		r24,106					// Programmiert schon ein Anderer ?
 	rcall	sx_read					// Wert von Kanal 106 zurückgeben
-	rjmp	prg_end
-prgtst:
+	rjmp	prg_end					// Wenn schon einer programmiert, dann r24 <> 0
+prgtst:								// prüfen ob Programmieranforderung über SX-Bus
+	sbrc	r20,0					// Unteres Nibble oder ganzes Byte ?
+	ori		r22, 0x80				// nein, dann Bit 7 in Adresse setzen
 	ldi		r24,107					// Anforderungsadr. in SX-Kanal 107
 	rcall	sx_read					// Adresse holen
 	sub		r24,r22					// stimmt die Adr ?
@@ -505,13 +525,11 @@ prgtst:
 	rcall	sx_read
 	subi	r24,MFGID
 	brne	prg_end					// Nicht meine ID Rückg. <> 0
-	swap	r20						// Subadresse von bit 0..1
-	lsl		r20						// nach bit 6..7
-	lsl		r20						// schieben
-	ori		r20,DEVID				// DevID dazuaddieren
-	ldi		r24,104					// DevID holen und vergleichen (enthält auch die Subadresse)
+	ldi		r24,104					// DevID holen und vergleichen
 	rcall	sx_read					// Passt sie zu diesem Dekoder ?
-	sub		r24,r20					// Ja = 0 , Nein <> 0
+	subi	r24,DEVID				// Ja = 0 , Nein <> 0
+	sbrc	r20,1					// oberes DiBit ?
+	subi	r24,0x80				// Ja. Flag ist Bit7 in DevID Kanal104 codiert
 prg_end:
 	ret
 	
@@ -524,7 +542,7 @@ prg_end:
 *	korrespondiernde Datenbit geschrieben.Es wird gewartet bis		*
 *	Adresse gültig	ist und die Daten geschrieben sind.				*
 *	Schreibmaske und Schreibdaten sind "double buffered", damit im 	*
-*   Fehlerfall eine faschen Daten geschriben werden.				*
+*   Fehlerfall keine faschen Daten geschrieben werden.				*
 ********************************************************************/
 sx_write:
 	out		SMASKE,r20				// Schreibmaske
@@ -858,7 +876,7 @@ synctest:
 	cbi		FLAG,Gleisbit			// GleisSpg-Flag löschen
 	sbrc	r30,7					// ist das Gleisbit gesetzt ?
 	sbi		FLAG,Gleisbit			// dann GleisSpg-Flag setzen
-	sbis	FLAG,req				// wenn keine anforderung dann nur 
+	sbis	FLAG,req				// wenn keine Anforderung dann nur 
 	rjmp	check_int				// GleisSpg-Flag bedienen
 	lsr		r30						// 0  g  t a3 a2  t a1 a0						
 	mov		r31,r30

@@ -386,16 +386,6 @@ mode8:		// Vierbegriffiges Haupt- u. Vorsignal getrennt
 
 mode9:
 	set								// Flag für 2 begriffiges Vorsignal auf 2. Adresse
-	/*cpi		r24,4					// 1. oder 2. Adresse
-	brlo	mode9_1					// 1. Adresse: einfach weiter
-	mov		r23,r24					// Stellbefehl sichern
-	swap	r24						// bit0 (hp0/hp1) nach bit3 schieben
-	lsr		r24		
-	ldi		r22,0b00001000			// nur Port 7..8 ändern (zweibegriffiges Hauptsignal)
-	rcall	mode4					// erst das Hauptsignal stellen
-	mov		r24,r23					// Stellbefehl für das Vorsignal am Mast des Ausfahrsinal
-	ldi		r22,0b00110000			// Maske für 2. Signal*/
-mode9_1:
 	ldi		r25,EE_Signal_DB5
 	rjmp	signal_kombi
 
@@ -443,11 +433,8 @@ vorsignal_ok:
 	// Hp/Hp2 = Vorsignal einschalten
 	sbrc	r21,0					// Hp1 od. Hp2 ?
 	rjmp	set_signal				// dann Signal stellen
-	brtc	action_end				// Kein Blocksignal dann Vorsignal dunkel lassen
-	//ldi		r22,0b11000000	
+	brtc	action_end				// Kein Blocksignal dann Vorsignal dunkel lassen	
 	subi	r24,254					// Kommando + 2	= Dunkeltastung Blockvorsignal
-
-
 
 set_signal:
 	add		r25,r24					// Offset für Signalmuster

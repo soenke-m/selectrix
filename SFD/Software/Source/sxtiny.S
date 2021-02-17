@@ -428,9 +428,6 @@ vorsignal:
 vorsignal_ok:
 	sts		vorsignal_state,r24		// Aktuelles Vorsignalkommando speichern
 	lds		r21,hauptsignal_state	// Stellung des Hauptsignals prüfen
-	//sbrs	r21,0					// Hp00 od. Hp0 + Sh1 -> Vorsignal ist dunkel
-	//rjmp	action_out_end			// nichts machen
-	// Hp/Hp2 = Vorsignal einschalten
 	sbrc	r21,0					// Hp1 od. Hp2 ?
 	rjmp	set_signal				// dann Signal stellen
 	brtc	action_end				// Kein Blocksignal dann Vorsignal dunkel lassen	
